@@ -1,0 +1,9 @@
+{
+  "name": "coral-core",
+  "version-string": "0.1.0",
+  "dependencies" : [ "eigen3", {
+    "name" : "libigl",
+    "version>=" : "2.5.0#2",
+    "features": ["imgui"]
+  } ]
+}
