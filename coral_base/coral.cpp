@@ -4,24 +4,32 @@
 #include <numbers>
 #include <vector>
 #include "../utils/union_set.h"
+#include "../utils/misc.h"
+#include "../utils/random.h"
 #include "coral.h"
 
 void Coral::init() {
     const double size = 0.5;
     const double sqrt_3_2 = std::sqrt(3) / 2;
-    vertices = MatrixXd(4, 3);
-    indices = MatrixXi(4, 3);
+    vertices = MatrixXd(7, 3);
+    indices = MatrixXi(6, 3);
     vertices<<
-        0, 0, 0,
+        0, 0, .4,
         size, 0, 0,
         size * 0.5, size * sqrt_3_2, 0,
-        size * 0.5, size * sqrt_3_2 / 3, size * sqrt_3_2;
+        size * -0.5, size * sqrt_3_2, 0,
+        -size, 0, 0,
+        size * -0.5, -size * sqrt_3_2, 0,
+        size * 0.5, -size * sqrt_3_2, 0;
     indices<<
-        0, 2, 1,
-        0, 1, 3,
-        1, 2, 3,
-        2, 0, 3;
-    m_id = 4;
+        0, 1, 2,
+        0, 2, 3,
+        0, 3, 4,
+        0, 4, 5,
+        0, 5, 6,
+        0, 6, 1;
+    m_id = 7;
+    branch_front.emplace(0);
 }
 
 
@@ -33,12 +41,45 @@ void Coral::grow(double delta_time) {
         double n_x = norm(0);
         double n_y = norm(1);
         double n_z = norm(2);
-        if (isnan(n_x)) continue;
-        auto zeta = 2 * std::numbers::inv_pi * std::atan(1 + n_z / std::hypot(n_x, n_y));
+        if (abs(vertices(i, 2)) < .002) {
+            n_z = 0;
+            double r = hypot(n_x, n_y);
+            n_x /= r;
+            n_y /= r;
+            norm(0) = n_x;
+            norm(1) = n_y;
+            norm(2) = 0;
+        }
+        if (norm.hasNaN()) continue;
+        auto zeta = 2 * std::numbers::inv_pi * std::atan(n_z / std::hypot(n_x, n_y));
+        //zeta = clamp(zeta + random.rand_double(.0, .03), -1.0, 1.0);
         if (zeta >= s_min && zeta <= s_max) {
-            vertices.row(i) += norm * delta_time * alpha;
+            vertices.row(i) += norm * delta_time * alpha * random.rand_double(0.95, 1.05);
         }
     }
+
+    /*
+    if (l_branch != 0) {
+        double p_branch = 1.0 / (branch_front.size() + 1);
+        if (p_branch >= random.rand_double(0, 1)) {
+            int b_idx;
+            do {
+                b_idx = random.rand_int(0, norms.rows() - 1);
+            } while (norms.row(b_idx).hasNaN());
+
+            MatrixXd norm = norms.row(b_idx);
+            double n_x = norm(0);
+            double n_y = norm(1);
+            double r_proj = hypot(n_x, n_y);
+            double n_z = r_proj / std::tan(theta);
+            double r = hypot(r_proj, n_z);
+            norm(0) = n_x / r;
+            norm(1) = n_y / r;
+            norm(2) = n_z / r;
+            vertices.row(b_idx) += norm * delta_time * alpha * random.rand_double(0.95, 1.05);
+        }
+    }
+    */
 
     MatrixXd lengths;
     igl::edge_lengths(vertices, indices, lengths);
@@ -50,11 +91,12 @@ void Coral::grow(double delta_time) {
         for (int j = 0; j < 3; j++) {
             auto i1 = indices(i, (j + 1) % 3);
             auto i2 = indices(i, (j + 2) % 3);
+            auto p = std::make_pair(std::min(i1, i2), std::max(i1, i2));
             if (lengths(i, j) < d_min) {
-                edges_to_merge.emplace(std::min(i1, i2), std::max(i1, i2));
+                edges_to_merge.emplace(p);
                 face_change--;
             } else if (lengths(i, j) > d_max) {
-                edges_to_break.emplace(std::min(i1, i2), std::max(i1, i2));
+                edges_to_break.emplace(p);
                 face_change++;
             }
         }
@@ -63,6 +105,11 @@ void Coral::grow(double delta_time) {
     UnionSet final_vertices(vertices.rows() + edges_to_break.size());
     for (auto [i1, i2]: edges_to_merge) {
         final_vertices.merge(i1, i2);
+    }
+    for (auto [i1, i2]: edges_to_break) {
+        if (i1 != final_vertices.find(i1) || i2 != final_vertices.find(i2)) {
+            face_change--;
+        }
     }
 
     MatrixXd new_vertices(vertices.rows() + edges_to_break.size(), 3);
@@ -90,11 +137,11 @@ void Coral::grow(double delta_time) {
                 break;
             }
 
-            auto p = std::make_pair(std::min(i1, i2), std::max(i1, i2));
+            auto p = std::make_pair(std::min(j1, j2), std::max(j1, j2));
             if (edges_to_break.contains(p)) {
                 auto result = vertices_created.try_emplace(p, m_id);
                 if (result.second) {
-                    MatrixXd coord = (vertices.row(i1) + vertices.row(i2)) / 2;
+                    MatrixXd coord = (vertices.row(j1) + vertices.row(j2)) / 2;
                     new_vertices.row(m_id) = coord;
                     m_id++;
                 }

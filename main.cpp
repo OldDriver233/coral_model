@@ -2,6 +2,7 @@
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/per_vertex_normals.h>
 #include "coral_base/coral.h"
+#include <iostream>
 
 using Eigen::MatrixXd;
 using Eigen::MatrixXi;
@@ -9,8 +10,10 @@ using Eigen::MatrixXi;
 int main() {
     Coral c;
     c.init();
-    for (int i = 0; i < 150; i++) {
-        c.grow(1);
+    int st;
+    std::cin>>st;
+    for (int i = 0; i < st; i++) {
+        c.grow(.25);
     }
     igl::opengl::glfw::Viewer viewer;
     viewer.data().set_mesh(c.vertices, c.indices);
