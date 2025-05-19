@@ -13,7 +13,7 @@ public:
     MatrixXd vertices;
     MatrixXi indices;
     double alpha = .1;
-    double s_min = 0, s_max = 1;
+    double s_min = 0.01, s_max = 1;
     double d_min = .1, d_max = .6;
     double l_branch = .4;
     double theta = M_PI / 3;
@@ -28,7 +28,7 @@ public:
 private:
     int m_id;
     std::unordered_set<std::pair<int, int>, PairHash> edges;
-    std::unordered_set<int> branch_front;
+    std::unordered_map<int, Eigen::MatrixXd> branch_front;
 };
 
 #endif //CORAL_H

@@ -29,7 +29,6 @@ void Coral::init() {
         0, 5, 6,
         0, 6, 1;
     m_id = 7;
-    branch_front.emplace(0);
 }
 
 
@@ -57,29 +56,6 @@ void Coral::grow(double delta_time) {
             vertices.row(i) += norm * delta_time * alpha * random.rand_double(0.95, 1.05);
         }
     }
-
-    /*
-    if (l_branch != 0) {
-        double p_branch = 1.0 / (branch_front.size() + 1);
-        if (p_branch >= random.rand_double(0, 1)) {
-            int b_idx;
-            do {
-                b_idx = random.rand_int(0, norms.rows() - 1);
-            } while (norms.row(b_idx).hasNaN());
-
-            MatrixXd norm = norms.row(b_idx);
-            double n_x = norm(0);
-            double n_y = norm(1);
-            double r_proj = hypot(n_x, n_y);
-            double n_z = r_proj / std::tan(theta);
-            double r = hypot(r_proj, n_z);
-            norm(0) = n_x / r;
-            norm(1) = n_y / r;
-            norm(2) = n_z / r;
-            vertices.row(b_idx) += norm * delta_time * alpha * random.rand_double(0.95, 1.05);
-        }
-    }
-    */
 
     MatrixXd lengths;
     igl::edge_lengths(vertices, indices, lengths);
