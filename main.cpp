@@ -1,22 +1,15 @@
-#include <Eigen/Dense>
-#include <igl/opengl/glfw/Viewer.h>
-#include <igl/per_vertex_normals.h>
-#include "coral_base/coral.h"
 #include <iostream>
 
-using Eigen::MatrixXd;
-using Eigen::MatrixXi;
+#include "model/coral.h"
+#include "viewer/viewer.h"
 
 int main() {
     Coral c;
-    c.init();
-    int st;
-    std::cin>>st;
-    for (int i = 0; i < st; i++) {
+    for (int i = 0; i < 10; i++) {
         c.grow(.25);
     }
-    igl::opengl::glfw::Viewer viewer;
-    viewer.data().set_mesh(c.vertices, c.indices);
+    CoralViewer viewer(c);
+    viewer.render();
     viewer.launch();
     return 0;
 }

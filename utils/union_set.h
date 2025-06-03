@@ -1,10 +1,8 @@
-//
-// Created by 孙诗超 on 25-5-15.
-//
-#include <vector>
-
 #ifndef UNION_SET_H
 #define UNION_SET_H
+
+#include <vector>
+
 class UnionSet {
 public:
     std::vector<int> parent;
