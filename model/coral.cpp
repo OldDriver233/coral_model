@@ -8,27 +8,26 @@
 #include "../utils/random.h"
 #include "coral.h"
 
-void Coral::init() {
+Coral::Coral(): m_id(7) {
     const double size = 0.5;
     const double sqrt_3_2 = std::sqrt(3) / 2;
     vertices = MatrixXd(7, 3);
     indices = MatrixXi(6, 3);
-    vertices<<
-        0, 0, .4,
-        size, 0, 0,
-        size * 0.5, size * sqrt_3_2, 0,
-        size * -0.5, size * sqrt_3_2, 0,
-        -size, 0, 0,
-        size * -0.5, -size * sqrt_3_2, 0,
-        size * 0.5, -size * sqrt_3_2, 0;
-    indices<<
-        0, 1, 2,
-        0, 2, 3,
-        0, 3, 4,
-        0, 4, 5,
-        0, 5, 6,
-        0, 6, 1;
-    m_id = 7;
+    vertices <<
+            0, 0, .4,
+            size, 0, 0,
+            size * 0.5, size * sqrt_3_2, 0,
+            size * -0.5, size * sqrt_3_2, 0,
+            -size, 0, 0,
+            size * -0.5, -size * sqrt_3_2, 0,
+            size * 0.5, -size * sqrt_3_2, 0;
+    indices <<
+            0, 1, 2,
+            0, 2, 3,
+            0, 3, 4,
+            0, 4, 5,
+            0, 5, 6,
+            0, 6, 1;
 }
 
 
@@ -51,7 +50,6 @@ void Coral::grow(double delta_time) {
         }
         if (norm.hasNaN()) continue;
         auto zeta = 2 * std::numbers::inv_pi * std::atan(n_z / std::hypot(n_x, n_y));
-        //zeta = clamp(zeta + random.rand_double(.0, .03), -1.0, 1.0);
         if (zeta >= s_min && zeta <= s_max) {
             vertices.row(i) += norm * delta_time * alpha * random.rand_double(0.95, 1.05);
         }
@@ -136,8 +134,8 @@ void Coral::grow(double delta_time) {
                 MatrixXi row1(1, 3), row2(1, 3);
                 for (int j = 0; j < 3; j++) {
                     if (appended_idx[j + 3] != -1) {
-                        row1<<appended_idx[j], appended_idx[(j + 1) % 3], appended_idx[j + 3];
-                        row2<<appended_idx[j], appended_idx[j + 3], appended_idx[(j + 2) % 3];
+                        row1 << appended_idx[j], appended_idx[(j + 1) % 3], appended_idx[j + 3];
+                        row2 << appended_idx[j], appended_idx[j + 3], appended_idx[(j + 2) % 3];
                         break;
                     }
                 }
@@ -147,9 +145,9 @@ void Coral::grow(double delta_time) {
                 MatrixXi row1(1, 3), row2(1, 3), row3(1, 3);
                 for (int j = 0; j < 3; j++) {
                     if (appended_idx[j + 3] == -1) {
-                        row1<<appended_idx[j], appended_idx[3 + (j + 2) % 3], appended_idx[3 + (j + 1) % 3];
-                        row2<<appended_idx[3 + (j + 2) % 3], appended_idx[(j + 1) % 3], appended_idx[3 + (j + 1) % 3];
-                        row3<<appended_idx[(j + 1) % 3], appended_idx[(j + 2) % 3], appended_idx[3 + (j + 1) % 3];
+                        row1 << appended_idx[j], appended_idx[3 + (j + 2) % 3], appended_idx[3 + (j + 1) % 3];
+                        row2 << appended_idx[3 + (j + 2) % 3], appended_idx[(j + 1) % 3], appended_idx[3 + (j + 1) % 3];
+                        row3 << appended_idx[(j + 1) % 3], appended_idx[(j + 2) % 3], appended_idx[3 + (j + 1) % 3];
                         break;
                     }
                 }
@@ -158,10 +156,10 @@ void Coral::grow(double delta_time) {
                 new_indices.row(new_idx_i++) = row3;
             } else {
                 MatrixXi row1(1, 3), row2(1, 3), row3(1, 3), row4(1, 3);
-                row1<<appended_idx[0], appended_idx[5], appended_idx[4];
-                row2<<appended_idx[1], appended_idx[3], appended_idx[5];
-                row3<<appended_idx[2], appended_idx[4], appended_idx[3];
-                row4<<appended_idx[3], appended_idx[4], appended_idx[5];
+                row1 << appended_idx[0], appended_idx[5], appended_idx[4];
+                row2 << appended_idx[1], appended_idx[3], appended_idx[5];
+                row3 << appended_idx[2], appended_idx[4], appended_idx[3];
+                row4 << appended_idx[3], appended_idx[4], appended_idx[5];
                 new_indices.row(new_idx_i++) = row1;
                 new_indices.row(new_idx_i++) = row2;
                 new_indices.row(new_idx_i++) = row3;
